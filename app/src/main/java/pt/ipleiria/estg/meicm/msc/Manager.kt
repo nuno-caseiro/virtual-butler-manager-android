@@ -35,11 +35,14 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     private val locationRoomsContainerLabel = "roomscnt"
     private val butlerLabel = "butler"
     private val sentencesToSpeakContainerLabel = "speakcnt"
+
     private val client: OkHttpClient = OkHttpClient()
     private var connected: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
     private var receivedNotification: MutableLiveData<String> = MutableLiveData<String>()
+
     private val jsonPostType = "application/vnd.onem2m-res+json"
     private val xmlType = "application/xml"
+
     val availableRooms = LinkedList<String>()
     val mappedRooms = LinkedList<Room>()
 
@@ -448,6 +451,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                         subscribeCurrentLocation(room)
                         subscribeSentencesToSpeakContainer(room)
                         //post para subscrever frases para ler
+                        mappedRooms.add(room)
                         callback.roomAddedToList()
                     }
                 }
@@ -466,11 +470,11 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
         val mediaType = "application/xml;ty=23".toMediaTypeOrNull()
         val body: RequestBody = RequestBody.create(
                 mediaType,
-                "<m2m:sub xmlns:m2m= \"http://www.onem2m.org/xml/protocols\" rn=\"${room.ip}\"><nu>http://${room.ip}:1400/monitor</nu><nct>2</nct><enc><net>3</net></enc></m2m:sub>"
+                "<m2m:sub xmlns:m2m= \"http://www.onem2m.org/xml/protocols\" rn=\"${room.ip}\"><nu>http://${room.ip}:1400/location</nu><nct>2</nct><enc><net>3</net></enc></m2m:sub>"
         )
         val request: Request = makeRequest(serverURI + locationContainerURI, body, xmlType, "23", "0008")
 
-        val response = client.newCall(request).execute().use { response ->
+        client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 callback.showSnack("Error subscribing current location's container")
             }
@@ -481,11 +485,11 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
         val mediaType = "application/xml;ty=23".toMediaTypeOrNull()
         val body: RequestBody = RequestBody.create(
                 mediaType,
-                "<m2m:sub xmlns:m2m= \"http://www.onem2m.org/xml/protocols\" rn=\"${room.ip}\"><nu>http://${room.ip}:1400/monitor</nu><nct>2</nct><enc><net>3</net></enc></m2m:sub>"
+                "<m2m:sub xmlns:m2m= \"http://www.onem2m.org/xml/protocols\" rn=\"${room.ip}\"><nu>http://${room.ip}:1400/sentences</nu><nct>2</nct><enc><net>3</net></enc></m2m:sub>"
         )
         val request: Request = makeRequest(serverURI + sentencesToSpeakContainerURI, body, xmlType, "23", "0008")
 
-        val response = client.newCall(request).execute().use { response ->
+        client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 callback.showSnack("Error subscribing sentences to speak container")
             }

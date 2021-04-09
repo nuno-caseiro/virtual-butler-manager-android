@@ -40,7 +40,6 @@ class MainActivity : AppCompatActivity(), UtilCallback {
         binding.roomList.adapter = itemAdapter
         binding.roomList.layoutManager = LinearLayoutManager(this)
 
-
     }
 
      override fun showSnack(message: String){
