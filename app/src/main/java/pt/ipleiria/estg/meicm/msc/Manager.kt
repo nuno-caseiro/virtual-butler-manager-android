@@ -17,6 +17,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 
+
 class Manager(private val callback: UtilCallback, private var deviceIp: String) {
     private val serverIP = "192.168.1.78:7579"
     private val serverURI = "http://" + this.serverIP
@@ -89,7 +90,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                         if (roomJson.has("rn") && roomJson.has("con")){
                             val room: Room
                             if (label == managerContainerURI){
-                                room = Room(roomJson.getString("con"),roomJson.getString("rn"))
+                                room = Room(roomJson.getString("con"), roomJson.getString("rn"))
                                 mappedRooms.add(room)
                                 callback.roomAddedToList()
                             }else{
@@ -449,10 +450,9 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                         callback.showSnack("Room with that IP already exists")
                     } else {
                         subscribeCurrentLocation(room)
-                        subscribeSentencesToSpeakContainer(room)
+
                         //post para subscrever frases para ler
-                        mappedRooms.add(room)
-                        callback.roomAddedToList()
+
                     }
                 }
             } else {
@@ -467,7 +467,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     }
 
     private fun subscribeCurrentLocation(room: Room) {
-        val mediaType = "application/xml;ty=23".toMediaTypeOrNull()
+        /*val mediaType = "application/xml;ty=23".toMediaTypeOrNull()
         val body: RequestBody = RequestBody.create(
                 mediaType,
                 "<m2m:sub xmlns:m2m= \"http://www.onem2m.org/xml/protocols\" rn=\"${room.ip}\"><nu>http://${room.ip}:1400/location</nu><nct>2</nct><enc><net>3</net></enc></m2m:sub>"
@@ -477,6 +477,29 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 callback.showSnack("Error subscribing current location's container")
+            }else{
+                subscribeSentencesToSpeakContainer(room);
+            }
+        }*/
+
+        val client: OkHttpClient = OkHttpClient().newBuilder()
+                .build()
+        val mediaType = "application/xml;ty=23".toMediaTypeOrNull()
+        val body: RequestBody = RequestBody.create(mediaType, "<m2m:sub xmlns:m2m= \"http://www.onem2m.org/xml/protocols\" rn=\"${room.ip}\"><nu>http://${room.ip}:1400/location</nu><nct>2</nct><enc><net>3</net></enc></m2m:sub>")
+ /*       val request: Request = Request.Builder()
+                .url("http://192.168.1.78:7579/onem2m/location/currentroomcnt")
+                .method("POST", body)
+                .addHeader("Content-Type", "application/xml;ty=23")
+                .addHeader("X-M2M-RI", "0008")
+                .addHeader("Authorization", "Basic c3VwZXJhZG1pbjpmN2M2YzEyZA==")
+                .build()
+*/
+        val request: Request = makeRequest(serverURI + locationContainerURI, body, xmlType, "23", "0008")
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                callback.showSnack("Error subscribing sentences to speak container")
+            }else{
+                subscribeSentencesToSpeakContainer(room)
             }
         }
     }
@@ -492,6 +515,9 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 callback.showSnack("Error subscribing sentences to speak container")
+            }else{
+                mappedRooms.add(room)
+                callback.roomAddedToList()
             }
         }
     }
