@@ -4,10 +4,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
 import java.util.*
 
-class RoomItemAdapter(private val dataSet: LinkedList<Room>) :
+class RoomItemAdapter(private val dataSet: LinkedList<Room>, private val clicked: MutableLiveData<Room>) :
         RecyclerView.Adapter<RoomItemAdapter.ViewHolder>() {
 
     /**
@@ -40,8 +41,10 @@ class RoomItemAdapter(private val dataSet: LinkedList<Room>) :
         //viewHolder.textView.text = dataSet[position]
         viewHolder.roomName.text = dataSet[position].roomName.capitalize()
         viewHolder.ip.text = dataSet[position].ip
-
+        viewHolder.itemView.setOnClickListener { clicked.postValue(dataSet[position]) }
     }
+
+
 
     // Return the size of your dataset (invoked by the layout manager)
     override fun getItemCount() = dataSet.size

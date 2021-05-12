@@ -5,5 +5,5 @@ interface UtilCallback {
     fun setMessage(item: String, message: String)
     fun saveRoom(room: Room)
     fun roomSaved(room: Room)
-    fun roomAddedToList()
+    fun notifyAdapter()
 }

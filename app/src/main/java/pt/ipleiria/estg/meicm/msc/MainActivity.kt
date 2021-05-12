@@ -7,6 +7,7 @@ import android.text.format.Formatter
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +20,7 @@ import java.util.*
 class MainActivity : AppCompatActivity(), UtilCallback {
     private lateinit var binding: ActivityMainBinding
     private lateinit var manager: Manager
+    private var clickedItem: MutableLiveData<Room> = MutableLiveData<Room>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,7 +38,7 @@ class MainActivity : AppCompatActivity(), UtilCallback {
             manager.connect()
         }
 
-        val itemAdapter  = RoomItemAdapter(manager.mappedRooms)
+        val itemAdapter  = RoomItemAdapter(manager.mappedRooms, clickedItem)
         binding.roomList.adapter = itemAdapter
         binding.roomList.layoutManager = LinearLayoutManager(this)
 
@@ -64,13 +66,16 @@ class MainActivity : AppCompatActivity(), UtilCallback {
 
     override fun roomSaved(room: Room) {
         println(room.toString())
+
     }
 
-    override fun roomAddedToList() {
+    override fun notifyAdapter() {
         CoroutineScope(Dispatchers.Main).launch {
             binding.roomList.adapter?.notifyDataSetChanged()
         }
     }
+
+
 
 
 }

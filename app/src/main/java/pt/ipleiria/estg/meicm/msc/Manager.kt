@@ -50,7 +50,8 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     init {
 
         connected.postValue(false)
-
+        mappedRooms.clear()
+        callback.notifyAdapter()
         connect()
 
        embeddedServer(Jetty, 1401, deviceIp) {
@@ -92,7 +93,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                             if (label == managerContainerURI){
                                 room = Room(roomJson.getString("con"), roomJson.getString("rn"))
                                 mappedRooms.add(room)
-                                callback.roomAddedToList()
+                                callback.notifyAdapter()
                             }else{
                                 room = Room(roomJson.getString("rn"))
                                 var found = false
@@ -517,7 +518,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                 callback.showSnack("Error subscribing sentences to speak container")
             }else{
                 mappedRooms.add(room)
-                callback.roomAddedToList()
+                callback.notifyAdapter()
             }
         }
     }
@@ -537,6 +538,14 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                 println("####### SUB ###### Rooms")
             }
         }
+    }
+
+    private fun editRoom(){
+
+    }
+
+    private  fun deleteRoom(){
+
     }
 
 
