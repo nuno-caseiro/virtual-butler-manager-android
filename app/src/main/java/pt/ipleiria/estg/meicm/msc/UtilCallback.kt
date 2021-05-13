@@ -6,4 +6,5 @@ interface UtilCallback {
     fun saveRoom(room: Room)
     fun roomSaved(room: Room)
     fun notifyAdapter()
+    fun roomRemoved()
 }

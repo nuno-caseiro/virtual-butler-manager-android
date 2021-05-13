@@ -1,5 +1,6 @@
 package pt.ipleiria.estg.meicm.msc
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,7 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
 import java.util.*
 
-class RoomItemAdapter(private val dataSet: LinkedList<Room>, private val clicked: MutableLiveData<Room>) :
+class RoomItemAdapter(private val dataSet: LinkedList<Room>, private val clicked: MutableLiveData<Pair<Int,Room>>) :
         RecyclerView.Adapter<RoomItemAdapter.ViewHolder>() {
 
     /**
@@ -41,7 +42,10 @@ class RoomItemAdapter(private val dataSet: LinkedList<Room>, private val clicked
         //viewHolder.textView.text = dataSet[position]
         viewHolder.roomName.text = dataSet[position].roomName.capitalize()
         viewHolder.ip.text = dataSet[position].ip
-        viewHolder.itemView.setOnClickListener { clicked.postValue(dataSet[position]) }
+        viewHolder.itemView.setOnClickListener {
+            viewHolder.itemView.setBackgroundColor(Color.LTGRAY)
+            clicked.postValue(Pair(position,dataSet[position]))
+        }
     }
 
 

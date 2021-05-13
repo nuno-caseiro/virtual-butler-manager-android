@@ -22,14 +22,12 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     private val serverIP = "192.168.1.78:7579"
     private val serverURI = "http://" + this.serverIP
     private val onem2m = "/onem2m"
-    private var managerURI = ""
     private var managerContainerURI = ""
     private var locationContainerURI = ""
     private var locationURI = ""
     private var locationRoomsContainerURI = ""
     private var sentencesToSpeakContainerURI = ""
     private var butlerURI = ""
-    private val managerLabel = "butlermanager"
     private val managerContainerLabel = "iproomcnt"
     private val locationLabel = "location"
     private val locationContainerLabel = "currentroomcnt"
@@ -43,9 +41,11 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
 
     private val jsonPostType = "application/vnd.onem2m-res+json"
     private val xmlType = "application/xml"
+    var deleteContainer = 0
 
     val availableRooms = LinkedList<String>()
     val mappedRooms = LinkedList<Room>()
+
 
     init {
 
@@ -62,6 +62,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                     Log.d("NOTIFICATION", receiveText)
                     receivedNotification.postValue(receiveText)
                 }
+
             }
         }.start(wait = false)
 
@@ -139,22 +140,23 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     }
 
     fun connect(){
+        mappedRooms.clear()
         CoroutineScope(Dispatchers.Default).launch {
             searchForLocationAE()
-            searchForManagerAE()
             searchForButlerAE()
+
 
             getRooms(managerContainerURI)
             getRooms(locationRoomsContainerURI)
 
             println("#######FOR TESTING START###########")
-            println(managerURI)
-            println(managerContainerURI)
+
             println(locationURI)
             println(locationContainerURI)
             println(locationRoomsContainerURI)
             println(butlerURI)
             println(sentencesToSpeakContainerURI)
+            println(managerContainerURI)
 
             println("#######FOR TESTING END###########")
         }
@@ -170,30 +172,46 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
         val response: String = query("$onem2m?fu=1&lbl=$butlerLabel")
         if (response != "Not found" && response.isNotEmpty()) {
 
-            var resp = JSONObject(response)
-            var respArray = resp["m2m:uril"] as JSONArray
+            val resp = JSONObject(response)
+            val respArray = resp["m2m:uril"] as JSONArray
             if (respArray.length() == 0) {
                 createButlerAE()
             } else {
                 butlerURI = respArray[0].toString()
-                //location uri
-                //println(resp)
-                //check container
-                val responseContainer: String =
-                        query("$onem2m?fu=1&lbl=$sentencesToSpeakContainerLabel")
-                if (responseContainer != "Not found") {
-                    resp = JSONObject(responseContainer)
-                    respArray = resp["m2m:uril"] as JSONArray
-                    if (respArray.length() == 0) {
-                        creteSentencesToSpeakContainer()
-                    } else {
-                        sentencesToSpeakContainerURI = respArray[0].toString()
-                    }
-                }
+
+                checkSentencesToSpeak()
+                checkManagerContainer()
             }
 
         }else{
             callback.showSnack("Error getting query")
+        }
+    }
+
+    private fun checkSentencesToSpeak(){
+        val responseContainer: String =
+                query("$onem2m?fu=1&lbl=$sentencesToSpeakContainerLabel")
+        if (responseContainer != "Not found") {
+            val resp = JSONObject(responseContainer)
+            val respArray = resp["m2m:uril"] as JSONArray
+            if (respArray.length() == 0) {
+                creteSentencesToSpeakContainer()
+            } else {
+                sentencesToSpeakContainerURI = respArray[0].toString()
+            }
+        }
+    }
+
+    private fun checkManagerContainer(){
+        var responseContainer = query("$onem2m?fu=1&lbl=$managerContainerLabel")
+        if (responseContainer != "Not found") {
+            val resp =  JSONObject(responseContainer)
+            val respArray  = resp["m2m:uril"] as JSONArray
+            if (respArray.length() == 0) {
+                createButlerManagerIpRoomContainer()
+            } else {
+                managerContainerURI = respArray[0].toString()
+            }
         }
     }
 
@@ -224,6 +242,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                 callback.showSnack("Creating sentences to speak container failed")
             } else {
                 sentencesToSpeakContainerURI = "$onem2m/$butlerLabel/$sentencesToSpeakContainerLabel"
+                createButlerManagerIpRoomContainer()
             }
         }
     }
@@ -368,8 +387,8 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     }
 
 
-    private fun searchForManagerAE() {
-        val response = query("$onem2m?fu=1&lbl=$managerLabel")
+   /* private fun searchForManagerAE() {
+        val response = query("$onem2m?fu=1&lbl=$butlerLabel")
         if (response != "Not found" && response.isNotEmpty()) {
             var resp = JSONObject(response)
             var respArray = resp["m2m:uril"] as JSONArray
@@ -383,7 +402,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                     resp = JSONObject(responseContainer)
                     respArray = resp["m2m:uril"] as JSONArray
                     if (respArray.length() == 0) {
-                        createButlerManagerIpRoomContainer()
+
 
                     } else {
                         managerContainerURI = respArray[0].toString()
@@ -413,19 +432,19 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
             }
         }
     }
-
+*/
     private fun createButlerManagerIpRoomContainer() {
         val mediaType = "application/vnd.onem2mres+json; ty=3".toMediaTypeOrNull()
         val body: RequestBody = RequestBody.create(
                 mediaType,
                 "{ \"m2m:cnt\": {\"rn\": \"$managerContainerLabel\", \"lbl\":[\"iproomcnt\", \"$managerContainerLabel\"]}}"
         )
-        val request = makeRequest(serverURI + managerURI, body, jsonPostType, "3", "0005")
+        val request = makeRequest(serverURI + butlerURI, body, jsonPostType, "3", "0005")
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 callback.showSnack("Creating Butler Manager AE container failed")
             } else {
-                managerContainerURI = "$onem2m/$managerLabel/$managerContainerLabel"
+                managerContainerURI = "$butlerURI/$managerContainerLabel"
             }
         }
     }
@@ -434,8 +453,8 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
 
         val queryResponse = query("$managerContainerURI?fu=1&lbl=${room.roomName}")
         if (queryResponse != "Not found") {
-            var resp = JSONObject(queryResponse)
-            var respArray = resp["m2m:uril"] as JSONArray
+            val resp = JSONObject(queryResponse)
+            val respArray = resp["m2m:uril"] as JSONArray
             if (respArray.length() == 0) {
                 val mediaType = "application/vnd.onem2mres+json; ty=4".toMediaTypeOrNull()
                 val body: RequestBody = RequestBody.create(
@@ -544,8 +563,40 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
 
     }
 
-    private  fun deleteRoom(){
+    fun deleteAllRoomsContainer(clickedRoom: Room){
+        println(clickedRoom)
+        deleteRoom(locationContainerURI,clickedRoom)
+    }
 
+    private fun deleteRoom(containerURI: String, room: Room){
+        val client = OkHttpClient().newBuilder()
+                .build()
+        val mediaType = "text/plain".toMediaTypeOrNull()
+        val body: RequestBody = RequestBody.create(mediaType, "")
+        val request: Request = Request.Builder()
+                .url("http://$serverIP$containerURI/${room.ip}")
+                .method("DELETE", body)
+                .addHeader("Accept", "application/json")
+                .addHeader("X-M2M-RI", "00001")
+                .addHeader("Authorization", "Basic c3VwZXJhZG1pbjpzbWFydGhvbWU=")
+                .build()
+        val response = client.newCall(request).execute()
+        if (response.isSuccessful){
+            deleteContainer++
+            when (deleteContainer) {
+                1 -> {
+                    deleteRoom(sentencesToSpeakContainerURI,room)
+                }
+                2 -> {
+                    deleteRoom(managerContainerURI,room)
+                }
+                else -> {
+                    mappedRooms.remove(room)
+                    callback.roomRemoved()
+                }
+            }
+
+        }
     }
 
 

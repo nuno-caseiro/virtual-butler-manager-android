@@ -66,17 +66,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Remove"
-            app:layout_constraintBaseline_toBaselineOf="@+id/edit_room_btn"
-            app:layout_constraintEnd_toEndOf="@+id/roomList" />
-
-        <Button
-            android:id="@+id/edit_room_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Edit"
             app:layout_constraintBaseline_toBaselineOf="@+id/create_room_btn"
-            app:layout_constraintEnd_toStartOf="@+id/remove_room_btn"
-            app:layout_constraintStart_toEndOf="@+id/create_room_btn" />
+            app:layout_constraintEnd_toEndOf="@+id/roomList" />
 
         <TextView
             android:id="@+id/ip_lbl"

@@ -4,8 +4,9 @@ import android.content.Context
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.text.format.Formatter
-
+import android.util.TypedValue
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.get
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,13 +15,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import pt.ipleiria.estg.meicm.msc.databinding.ActivityMainBinding
-import java.util.*
 
 
 class MainActivity : AppCompatActivity(), UtilCallback {
     private lateinit var binding: ActivityMainBinding
     private lateinit var manager: Manager
-    private var clickedItem: MutableLiveData<Room> = MutableLiveData<Room>()
+    private var clickedItem: MutableLiveData<Pair<Int, Room>> = MutableLiveData()
+    private var room: Pair<Int,Room> = Pair(0, Room("Empty", "0.0.0.0"))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,19 +39,38 @@ class MainActivity : AppCompatActivity(), UtilCallback {
             manager.connect()
         }
 
+        binding.removeRoomBtn.setOnClickListener {
+            CoroutineScope(Dispatchers.Default).launch {
+                manager.deleteAllRoomsContainer(room.second)
+            }
+        }
+
         val itemAdapter  = RoomItemAdapter(manager.mappedRooms, clickedItem)
         binding.roomList.adapter = itemAdapter
         binding.roomList.layoutManager = LinearLayoutManager(this)
 
+        clickedItem.observe(this, {
+            room = it
+            for (i in 0 until itemAdapter.itemCount) {
+                if (i != it.first){
+                    val typedValue = TypedValue()
+                    if (this.theme.resolveAttribute(android.R.attr.windowBackground, typedValue, true)) {
+                        val colorWindowBackground = typedValue.data
+                        binding.roomList[i].setBackgroundColor(colorWindowBackground)
+                    }
+                }
+            }
+        })
+
     }
 
      override fun showSnack(message: String){
-        val snack = Snackbar.make(this.findViewById(android.R.id.content),message, Snackbar.LENGTH_LONG)
+        val snack = Snackbar.make(this.findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
         snack.setAction("Dismiss") { snack.dismiss() }
          snack.show()
     }
 
-    override fun setMessage(item: String ,message: String) {
+    override fun setMessage(item: String, message: String) {
         CoroutineScope(Dispatchers.Main).launch {
             when (item) {
                 "connected_to_ip" -> binding.connectedToIp.text = message
@@ -75,7 +95,10 @@ class MainActivity : AppCompatActivity(), UtilCallback {
         }
     }
 
-
-
+    override fun roomRemoved() {
+        CoroutineScope(Dispatchers.Main).launch {
+            binding.roomList.adapter?.notifyDataSetChanged()
+        }
+    }
 
 }
