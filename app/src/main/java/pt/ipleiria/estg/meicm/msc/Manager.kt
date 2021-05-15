@@ -50,7 +50,6 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     init {
 
         connected.postValue(false)
-        mappedRooms.clear()
         callback.notifyAdapter()
         connect()
 
@@ -140,7 +139,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     }
 
     fun connect(){
-        mappedRooms.clear()
+
         CoroutineScope(Dispatchers.Default).launch {
             searchForLocationAE()
             searchForButlerAE()
