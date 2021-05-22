@@ -43,10 +43,6 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
             AddRoomDialog(this, manager.atualAvailableRooms).show(supportFragmentManager, "AddRoomDialog")
         }
 
-        binding.imageButton.setOnClickListener {
-            manager.connect()
-        }
-
         binding.removeRoomBtn.setOnClickListener {
             CoroutineScope(Dispatchers.Default).launch {
                 manager.deleteAllRoomsContainer(room.second)
