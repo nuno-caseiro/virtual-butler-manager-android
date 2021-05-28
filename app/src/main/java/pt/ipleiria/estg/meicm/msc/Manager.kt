@@ -4,7 +4,9 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import io.ktor.application.*
+import io.ktor.http.*
 import io.ktor.request.*
+import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
@@ -65,12 +67,14 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                     val receiveText = call.receiveText()
                     Log.d("NOTIFICATION", receiveText)
                     receivedNotification.postValue(receiveText)
+                    call.respond(HttpStatusCode.OK)
                 }
 
                 post("/location") {
                     val receiveText = call.receiveText()
                     Log.d("NOTIFICATION", receiveText)
                     receivedLocationNotification.postValue(receiveText)
+                    call.respond(HttpStatusCode.OK)
                 }
 
             }
@@ -646,7 +650,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                 else -> {
                     mappedRooms.remove(room)
                     atualAvailableRooms.add(room.roomName.capitalize())
-                    allAvailableRooms.remove(room.roomName)
+                    allAvailableRooms.remove(room.roomName.capitalize())
                     callback.roomRemoved()
                 }
 
