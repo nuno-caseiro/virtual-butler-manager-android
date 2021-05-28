@@ -49,18 +49,15 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
             }
         }
 
-
-        spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, manager.allAvailableRooms)
-        binding.currentRoomSpinner.adapter = spinnerAdapter
-        binding.currentRoomSpinner.onItemSelectedListener = this
-        manager.allAvailableRooms.add("None")
-
-
-
         val itemAdapter  = RoomItemAdapter(manager.mappedRooms, clickedItem)
         binding.roomList.adapter = itemAdapter
         binding.roomList.layoutManager = LinearLayoutManager(this)
 
+        spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item,  manager.allAvailableRooms)
+        binding.currentRoomSpinner.adapter = spinnerAdapter
+        binding.currentRoomSpinner.onItemSelectedListener = this
+
+        //manager.allAvailableRooms.add("None")
         clickedItem.observe(this, {
             room = it
             for (i in 0 until itemAdapter.itemCount) {
@@ -116,8 +113,10 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
     }
 
     override fun roomRemoved() {
+        spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, manager.allAvailableRooms)
         CoroutineScope(Dispatchers.Main).launch {
             binding.roomList.adapter?.notifyDataSetChanged()
+            binding.currentRoomSpinner.adapter = spinnerAdapter
         }
     }
 
@@ -136,17 +135,15 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        if (!firstTime){
             val item = parent!!.getItemAtPosition(position) as String
             val itemDecap = item.decapitalize(Locale.ROOT)
-           if (itemDecap != lastSelected){
+            Log.e("Last selected", "LAST SELECTED: $lastSelected; ITEM: $itemDecap" )
+           //if (itemDecap != lastSelected){
                CoroutineScope(Dispatchers.Default).launch {
                    manager.changeCurrentLocation(itemDecap)
                }
-           }
-        }else{
-            firstTime=!firstTime
-        }
+          // }
+
     }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {

@@ -144,10 +144,10 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                             if (label == managerContainerURI) {
                                 room = Room(roomJson.getString("con"), roomJson.getString("rn"))
                                 mappedRooms.add(room)
+                                allAvailableRooms.add(room.roomName.capitalize(Locale.ROOT))
                                 callback.notifyAdapter()
                             } else {
                                 room = Room(roomJson.getString("rn"))
-                                allAvailableRooms.add(room.roomName.capitalize(Locale.ROOT))
                                 callback.notifySpinnerAdapterChanged()
                                 var found = false
                                 for (roomM in mappedRooms) {
@@ -591,6 +591,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
             } else {
                 mappedRooms.add(room)
                 atualAvailableRooms.remove(room.roomName.capitalize())
+                allAvailableRooms.add(room.roomName.capitalize())
                 callback.notifyAdapter()
             }
         }
@@ -615,6 +616,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
 
     fun deleteAllRoomsContainer(clickedRoom: Room) {
         println(clickedRoom)
+        deleteContainer = 0
         deleteRoom(locationContainerURI, clickedRoom)
     }
 
@@ -630,23 +632,26 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                 .addHeader("X-M2M-RI", "00001")
                 .addHeader("Authorization", "Basic c3VwZXJhZG1pbjpzbWFydGhvbWU=")
                 .build()
-        changeCurrentLocation("none")
+
         val response = client.newCall(request).execute()
-        deleteContainer++
-        when (deleteContainer) {
-            1 -> {
-                deleteRoom(sentencesToSpeakContainerURI, room)
-            }
-            2 -> {
-                deleteRoom(managerContainerURI, room)
-            }
-            else -> {
-                mappedRooms.remove(room)
-                atualAvailableRooms.add(room.roomName.capitalize())
-                callback.roomRemoved()
-            }
+        if(response.isSuccessful){
+            deleteContainer++
+            when (deleteContainer) {
+                1 -> {
+                    deleteRoom(sentencesToSpeakContainerURI, room)
+                }
+                2 -> {
+                    deleteRoom(managerContainerURI, room)
+                }
+                else -> {
+                    mappedRooms.remove(room)
+                    atualAvailableRooms.add(room.roomName.capitalize())
+                    allAvailableRooms.remove(room.roomName)
+                    callback.roomRemoved()
+                }
 
 
+            }
         }
     }
 
@@ -672,6 +677,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
 
     fun changeCurrentLocation(room: String) {
         val roomRnd =  Random.nextInt(9999)
+
         val mediaType = "application/vnd.onem2mres+json; ty=4".toMediaTypeOrNull()
         val body: RequestBody = RequestBody.create(mediaType, "{ \"m2m:cin\": {\"rn\":\"$room$roomRnd\", \"cnf\":\"text/plain:0\",\"con\": \"$room\"}}")
         val request: Request = Request.Builder()
