@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
                         binding.roomList[i].setBackgroundColor(colorWindowBackground)
                     }
                 }
-            }
+            }   
         })
 
     }

@@ -40,12 +40,16 @@ class RoomItemAdapter(private val dataSet: LinkedList<Room>, private val clicked
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
         //viewHolder.textView.text = dataSet[position]
-        viewHolder.roomName.text = dataSet[position].roomName.capitalize()
-        viewHolder.ip.text = dataSet[position].ip
-        viewHolder.itemView.setOnClickListener {
-            viewHolder.itemView.setBackgroundColor(Color.LTGRAY)
-            clicked.postValue(Pair(position,dataSet[position]))
-        }
+
+            viewHolder.roomName.text = dataSet[position].roomName.capitalize()
+            viewHolder.ip.text = dataSet[position].ip
+            clicked.postValue(Pair(-1,dataSet[position]))
+            viewHolder.itemView.setOnClickListener {
+                viewHolder.itemView.setBackgroundColor(Color.LTGRAY)
+                clicked.postValue(Pair(position,dataSet[position]))
+            }
+
+
     }
 
 
