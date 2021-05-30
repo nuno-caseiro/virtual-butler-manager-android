@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
     private lateinit var manager: Manager
     private var clickedItem: MutableLiveData<Pair<Int, Room>> = MutableLiveData()
     private var room: Pair<Int,Room> = Pair(0, Room("Empty", "0.0.0.0"))
-    private lateinit var spinnerAdapter: ArrayAdapter<String>
+    private var spinnerAdapter: ArrayAdapter<String>? = null
     private var lastSelected: String = ""
     private var firstTime = true
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,8 +99,14 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
     }
 
     override fun notifyAdapter() {
+        if (spinnerAdapter != null){
+            spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, manager.allAvailableRooms)
+        }
         CoroutineScope(Dispatchers.Main).launch {
             binding.roomList.adapter?.notifyDataSetChanged()
+            if (spinnerAdapter!= null){
+                binding.currentRoomSpinner.adapter = spinnerAdapter
+            }
         }
     }
 
@@ -108,7 +114,7 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
 
     override fun notifySpinnerAdapterChanged() {
         CoroutineScope(Dispatchers.Main).launch {
-            spinnerAdapter.notifyDataSetChanged()
+            spinnerAdapter?.notifyDataSetChanged()
         }
     }
 
@@ -122,7 +128,7 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
 
     override fun notifyActive(room: String) {
         CoroutineScope(Dispatchers.Main).launch {
-            for (i in 0 until spinnerAdapter.count) {
+            for (i in 0 until spinnerAdapter!!.count) {
                 val item: String = binding.currentRoomSpinner.getItemAtPosition(i) as String
                 if (item.decapitalize(Locale.ROOT) == room) {
                     lastSelected = room

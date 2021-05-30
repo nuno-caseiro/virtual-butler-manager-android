@@ -190,8 +190,12 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                         jsonObject = jsonObject.getJSONObject("m2m:cin")
                         val room = jsonObject.getString("rn").toLowerCase(Locale.ROOT).capitalize(Locale.ROOT)
                         Log.d("ROOM NTF", room.toString())
-                        atualAvailableRooms.add(room)
-                        allAvailableRooms.add(room)
+                        if (!atualAvailableRooms.contains(room)){
+                            atualAvailableRooms.add(room)
+                        }
+                        if (!allAvailableRooms.contains(room)){
+                            allAvailableRooms.add(room)
+                        }
                     }
 
                 }
@@ -595,7 +599,9 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
             } else {
                 mappedRooms.add(room)
                 atualAvailableRooms.remove(room.roomName.capitalize())
-                allAvailableRooms.add(room.roomName.capitalize())
+                if(!allAvailableRooms.contains(room.roomName.capitalize())){
+                    allAvailableRooms.add(room.roomName.capitalize())
+                }
                 callback.notifyAdapter()
             }
         }
