@@ -1,6 +1,5 @@
 package pt.ipleiria.estg.meicm.msc
 
-import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import io.ktor.application.*
@@ -23,8 +22,11 @@ import kotlin.random.Random
 
 
 class Manager(private val callback: UtilCallback, private var deviceIp: String) {
-    private val serverIP = "192.168.1.78:7579"
+
+    // TODO: Insert your server IP and port eg: 192.168.1.78:7579
+    private val serverIP = "CHANGE ME"
     private val serverURI = "http://" + this.serverIP
+
     private val onem2m = "/onem2m"
     private var managerContainerURI = ""
     private var locationContainerURI = ""
@@ -47,7 +49,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     private val xmlType = "application/xml"
     var deleteContainer = 0
 
-    val atualAvailableRooms = LinkedList<String>()
+    private val actualAvailableRooms = LinkedList<String>()
     val allAvailableRooms = LinkedList<String>()
     val mappedRooms = LinkedList<Room>()
 
@@ -55,7 +57,6 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
 
 
     init {
-
         connected.postValue(false)
         callback.notifyAdapter()
         connect()
@@ -88,7 +89,6 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
 
         receivedLocationNotification.observeForever {
             if (it != null) {
-                //desligar voice recognition -> como no exemplo que ja fiz "My application"
                 readNotification("location", it)
             }
         }
@@ -96,7 +96,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     }
 
     private fun readNotification(notfSource: String, notf: String) {
-        try{
+        try {
             var jsonObject = JSONObject(notf)
             var sur = ""
             if (jsonObject.has("m2m:sgn")) {
@@ -122,7 +122,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                     }
                 }
             }
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Log.e("ERROR", "XML")
         }
 
@@ -161,14 +161,14 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                                     }
                                 }
                                 if (!found) {
-                                    atualAvailableRooms.add(room.roomName.capitalize(Locale.ROOT))
+                                    actualAvailableRooms.add(room.roomName.capitalize(Locale.ROOT))
                                 }
                             }
 
                         }
                     }
                 }
-                if (label != managerContainerURI){
+                if (label != managerContainerURI) {
                     checkIfIsActive()
                 }
             }
@@ -177,7 +177,6 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
 
     }
 
-    //TODO is it really necessary ? and if that is deleted - > should i replace with getrooms refresh? checking the owner notification
     private fun newRoomAvailable(string: String) {
         var jsonObject = JSONObject(string)
         if (jsonObject.has("m2m:sgn")) {
@@ -190,10 +189,10 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                         jsonObject = jsonObject.getJSONObject("m2m:cin")
                         val room = jsonObject.getString("rn").toLowerCase(Locale.ROOT).capitalize(Locale.ROOT)
                         Log.d("ROOM NTF", room.toString())
-                        if (!atualAvailableRooms.contains(room)){
-                            atualAvailableRooms.add(room)
+                        if (!actualAvailableRooms.contains(room)) {
+                            actualAvailableRooms.add(room)
                         }
-                        if (!allAvailableRooms.contains(room)){
+                        if (!allAvailableRooms.contains(room)) {
                             allAvailableRooms.add(room)
                         }
                     }
@@ -203,11 +202,10 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
         }
     }
 
-    fun connect() {
-
+    private fun connect() {
         CoroutineScope(Dispatchers.Default).launch {
             mappedRooms.clear()
-            atualAvailableRooms.clear()
+            actualAvailableRooms.clear()
             searchForLocationAE()
             searchForButlerAE()
 
@@ -270,7 +268,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     }
 
     private fun checkManagerContainer() {
-        var responseContainer = query("$onem2m?fu=1&lbl=$managerContainerLabel")
+        val responseContainer = query("$onem2m?fu=1&lbl=$managerContainerLabel")
         if (responseContainer != "Not found") {
             val resp = JSONObject(responseContainer)
             val respArray = resp["m2m:uril"] as JSONArray
@@ -294,7 +292,6 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
             } else {
                 butlerURI = "$onem2m/$butlerLabel"
                 creteSentencesToSpeakContainer()
-                //createRoomsContainer()
             }
         }
     }
@@ -349,9 +346,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                 createLocationAE()
             } else {
                 locationURI = respArray[0].toString()
-                //location uri
-                //println(resp)
-                //check container
+
                 var responseContainer: String = query("$onem2m?fu=1&lbl=$locationContainerLabel")
                 if (responseContainer != "Not found") {
                     resp = JSONObject(responseContainer)
@@ -463,53 +458,6 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                 .build()
     }
 
-
-    /* private fun searchForManagerAE() {
-         val response = query("$onem2m?fu=1&lbl=$butlerLabel")
-         if (response != "Not found" && response.isNotEmpty()) {
-             var resp = JSONObject(response)
-             var respArray = resp["m2m:uril"] as JSONArray
-             if (respArray.length() == 0) {
-                 createButlerManagerAE()
-             } else {
-                 managerURI = respArray[0].toString()
-
-                 var responseContainer = query("$onem2m?fu=1&lbl=$managerContainerLabel")
-                 if (responseContainer != "Not found") {
-                     resp = JSONObject(responseContainer)
-                     respArray = resp["m2m:uril"] as JSONArray
-                     if (respArray.length() == 0) {
-
-
-                     } else {
-                         managerContainerURI = respArray[0].toString()
-                         //checksub
-                     }
-                 }
-             }
-         }else{
-             callback.showSnack("Error getting query")
-         }
-     }
-
-     private fun createButlerManagerAE() {
-         val mediaType = "application/vnd.onem2m-res+json; ty=2".toMediaTypeOrNull()
-         val body: RequestBody = RequestBody.create(
-                 mediaType,
-                 "{ \"m2m:ae\": {\"rn\": \"$managerLabel\",\"api\": \"pt.ipleiria.estg.butlermanager\",\"rr\": false, \"lbl\":[\"$managerLabel\"]}}"
-         )
-         val request: Request = makeRequest(serverURI + onem2m, body, jsonPostType, "2", "00003")
-         client.newCall(request).execute().use { response ->
-             if (!response.isSuccessful) {
-                 callback.showSnack("Creating Butler Manager AE failed")
-             } else {
-                 managerURI = "$onem2m/$managerLabel"
-                 createButlerManagerIpRoomContainer()
-
-             }
-         }
-     }
- */
     private fun createButlerManagerIpRoomContainer() {
         val mediaType = "application/vnd.onem2mres+json; ty=3".toMediaTypeOrNull()
         val body: RequestBody = RequestBody.create(
@@ -527,7 +475,6 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     }
 
     fun saveRoom(room: Room) {
-
         val queryResponse = query("$managerContainerURI?fu=1&lbl=${room.roomName}")
         if (queryResponse != "Not found") {
             val resp = JSONObject(queryResponse)
@@ -547,9 +494,6 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                         callback.showSnack("Room with that IP already exists")
                     } else {
                         subscribeCurrentLocation(room)
-
-                        //post para subscrever frases para ler
-
                     }
                 }
             } else {
@@ -559,8 +503,6 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
         } else {
             callback.showSnack("Query for room not successfully")
         }
-
-
     }
 
     private fun subscribeCurrentLocation(room: Room) {
@@ -568,10 +510,10 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                 .build()
         val mediaType = "application/xml;ty=23".toMediaTypeOrNull()
         val body: RequestBody
-        if (room.roomName.contains("manager")){
+        if (room.roomName.contains("manager")) {
             body = RequestBody.create(mediaType, "<m2m:sub xmlns:m2m= \"http://www.onem2m.org/xml/protocols\" rn=\"${room.roomName}\"><nu>http://${room.ip}:1401/location</nu><nct>2</nct><enc><net>3</net></enc></m2m:sub>")
 
-        }else{
+        } else {
             body = RequestBody.create(mediaType, "<m2m:sub xmlns:m2m= \"http://www.onem2m.org/xml/protocols\" rn=\"${room.ip}\"><nu>http://${room.ip}:1400/location</nu><nct>2</nct><enc><net>3</net></enc></m2m:sub>")
         }
         val request: Request = makeRequest(serverURI + locationContainerURI, body, xmlType, "23", "0008")
@@ -598,9 +540,9 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                 callback.showSnack("Error subscribing sentences to speak container")
             } else {
                 mappedRooms.add(room)
-                atualAvailableRooms.remove(room.roomName.capitalize())
-                if(!allAvailableRooms.contains(room.roomName.capitalize())){
-                    allAvailableRooms.add(room.roomName.capitalize())
+                actualAvailableRooms.remove(room.roomName.capitalize(Locale.ROOT))
+                if (!allAvailableRooms.contains(room.roomName.capitalize(Locale.ROOT))) {
+                    allAvailableRooms.add(room.roomName.capitalize(Locale.ROOT))
                 }
                 callback.notifyAdapter()
             }
@@ -615,7 +557,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
         )
         val request: Request = makeRequest(serverURI + locationRoomsContainerURI, body, xmlType, "23", "0008")
 
-        val response = client.newCall(request).execute().use { response ->
+        client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 callback.showSnack("Error subscribing rooms location's container")
             } else {
@@ -644,7 +586,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                 .build()
 
         val response = client.newCall(request).execute()
-        if(response.isSuccessful){
+        if (response.isSuccessful) {
             deleteContainer++
             when (deleteContainer) {
                 1 -> {
@@ -655,12 +597,10 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                 }
                 else -> {
                     mappedRooms.remove(room)
-                    atualAvailableRooms.add(room.roomName.capitalize())
-                    allAvailableRooms.remove(room.roomName.capitalize())
+                    actualAvailableRooms.add(room.roomName.capitalize(Locale.ROOT))
+                    allAvailableRooms.remove(room.roomName.capitalize(Locale.ROOT))
                     callback.roomRemoved()
                 }
-
-
             }
         }
     }
@@ -686,18 +626,19 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     }
 
     fun changeCurrentLocation(room: String) {
-        val roomRnd =  Random.nextInt(9999)
+        val roomRnd = Random.nextInt(9999)
 
         val mediaType = "application/vnd.onem2mres+json; ty=4".toMediaTypeOrNull()
         val body: RequestBody = RequestBody.create(mediaType, "{ \"m2m:cin\": {\"rn\":\"$room$roomRnd\", \"cnf\":\"text/plain:0\",\"con\": \"$room\"}}")
         val request: Request = Request.Builder()
-                .url(serverURI+locationContainerURI)
+                .url(serverURI + locationContainerURI)
                 .method("POST", body)
                 .addHeader("Content-Type", "application/vnd.onem2mres+json; ty=4")
                 .addHeader("X-M2M-RI", "0006")
                 .addHeader("Authorization", "Basic c3VwZXJhZG1pbjpzbWFydGhvbWUyMQ==")
                 .build()
-        val response = client.newCall(request).execute().use { response ->
+
+        client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 callback.showSnack("Error changing current location")
             }

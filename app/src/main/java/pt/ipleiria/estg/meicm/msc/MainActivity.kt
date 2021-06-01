@@ -7,7 +7,6 @@ import android.text.format.Formatter
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
-import android.widget.Adapter
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
@@ -24,13 +23,14 @@ import java.util.*
 
 
 class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelectedListener {
+
     private lateinit var binding: ActivityMainBinding
     private lateinit var manager: Manager
     private var clickedItem: MutableLiveData<Pair<Int, Room>> = MutableLiveData()
     private var room: Pair<Int,Room> = Pair(0, Room("Empty", "0.0.0.0"))
     private var spinnerAdapter: ArrayAdapter<String>? = null
     private var lastSelected: String = ""
-    private var firstTime = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
@@ -144,17 +144,13 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
             val item = parent!!.getItemAtPosition(position) as String
             val itemDecap = item.decapitalize(Locale.ROOT)
             Log.e("Last selected", "LAST SELECTED: $lastSelected; ITEM: $itemDecap" )
-           //if (itemDecap != lastSelected){
                CoroutineScope(Dispatchers.Default).launch {
                    manager.changeCurrentLocation(itemDecap)
                }
-          // }
-
     }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {
         TODO("Not yet implemented")
     }
-
 
 }
