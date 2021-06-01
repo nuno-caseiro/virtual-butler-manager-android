@@ -49,7 +49,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     private val xmlType = "application/xml"
     var deleteContainer = 0
 
-    private val actualAvailableRooms = LinkedList<String>()
+    val actualAvailableRooms = LinkedList<String>()
     val allAvailableRooms = LinkedList<String>()
     val mappedRooms = LinkedList<Room>()
 

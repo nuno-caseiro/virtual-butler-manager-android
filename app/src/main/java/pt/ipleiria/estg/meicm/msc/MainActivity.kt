@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
         binding.ipLbl.text = ipAddress
         manager = Manager(this, ipAddress)
         binding.createRoomBtn.setOnClickListener {
-            AddRoomDialog(this, manager.atualAvailableRooms).show(supportFragmentManager, "AddRoomDialog")
+            AddRoomDialog(this, manager.actualAvailableRooms).show(supportFragmentManager, "AddRoomDialog")
         }
 
         binding.removeRoomBtn.setOnClickListener {
