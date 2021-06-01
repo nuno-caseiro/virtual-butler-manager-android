@@ -141,12 +141,14 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-            val item = parent!!.getItemAtPosition(position) as String
-            val itemDecap = item.decapitalize(Locale.ROOT)
-            Log.e("Last selected", "LAST SELECTED: $lastSelected; ITEM: $itemDecap" )
-               CoroutineScope(Dispatchers.Default).launch {
-                   manager.changeCurrentLocation(itemDecap)
-               }
+           if (manager.conectedDone){
+                val item = parent!!.getItemAtPosition(position) as String
+                val itemDecap = item.decapitalize(Locale.ROOT)
+                Log.e("Last selected", "LAST SELECTED: $lastSelected; ITEM: $itemDecap" )
+                   CoroutineScope(Dispatchers.Default).launch {
+                       manager.changeCurrentLocation(itemDecap)
+                   }
+           }
     }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {

@@ -53,8 +53,9 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     val allAvailableRooms = LinkedList<String>()
     val mappedRooms = LinkedList<Room>()
 
-    private var receivedLocationNotification: MutableLiveData<String> = MutableLiveData<String>()
+    var conectedDone = false
 
+    private var receivedLocationNotification: MutableLiveData<String> = MutableLiveData<String>()
 
     init {
         connected.postValue(false)
@@ -224,6 +225,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
             println(managerContainerURI)
 
             println("#######FOR TESTING END###########")
+            conectedDone = true
         }
 
         connected.observeForever {
