@@ -24,7 +24,7 @@ import kotlin.random.Random
 class Manager(private val callback: UtilCallback, private var deviceIp: String) {
 
     // TODO: Insert your server IP and port eg: 192.168.1.78:7579
-    private val serverIP = "CHANGE ME"
+    private val serverIP = "192.168.1.78:7579"
     private val serverURI = "http://" + this.serverIP
 
     private val onem2m = "/onem2m"
@@ -53,7 +53,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
     val allAvailableRooms = LinkedList<String>()
     val mappedRooms = LinkedList<Room>()
 
-    var conectedDone = false
+    var connectedDone = false
 
     private var receivedLocationNotification: MutableLiveData<String> = MutableLiveData<String>()
 
@@ -225,7 +225,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
             println(managerContainerURI)
 
             println("#######FOR TESTING END###########")
-            conectedDone = true
+            connectedDone = true
         }
 
         connected.observeForever {
@@ -588,7 +588,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                 .build()
 
         val response = client.newCall(request).execute()
-        if (response.isSuccessful) {
+
             deleteContainer++
             when (deleteContainer) {
                 1 -> {
@@ -604,7 +604,7 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
                     callback.roomRemoved()
                 }
             }
-        }
+
     }
 
     private fun checkIfIsActive() {

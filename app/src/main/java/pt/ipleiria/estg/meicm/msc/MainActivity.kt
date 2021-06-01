@@ -30,6 +30,7 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
     private var room: Pair<Int,Room> = Pair(0, Room("Empty", "0.0.0.0"))
     private var spinnerAdapter: ArrayAdapter<String>? = null
     private var lastSelected: String = ""
+    private var firstTime = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,22 +54,24 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
         binding.roomList.adapter = itemAdapter
         binding.roomList.layoutManager = LinearLayoutManager(this)
 
-        spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item,  manager.allAvailableRooms)
-        binding.currentRoomSpinner.adapter = spinnerAdapter
-        binding.currentRoomSpinner.onItemSelectedListener = this
 
         //manager.allAvailableRooms.add("None")
         clickedItem.observe(this, {
             room = it
-            for (i in 0 until itemAdapter.itemCount) {
-                if (i != it.first){
-                    val typedValue = TypedValue()
-                    if (this.theme.resolveAttribute(android.R.attr.windowBackground, typedValue, true)) {
-                        val colorWindowBackground = typedValue.data
-                        binding.roomList[i].setBackgroundColor(colorWindowBackground)
+            try {
+                for (i in 0 until itemAdapter.itemCount) {
+                    if (i != it.first ){
+                        val typedValue = TypedValue()
+                        if (this.theme.resolveAttribute(android.R.attr.windowBackground, typedValue, true)) {
+                            val colorWindowBackground = typedValue.data
+                            binding.roomList[i].setBackgroundColor(colorWindowBackground)
+                        }
                     }
                 }
-            }   
+            }catch (e: Exception){
+                Log.e("BACKGROUND", "ERROR")
+            }
+
         })
 
     }
@@ -127,8 +130,16 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
     }
 
     override fun notifyActive(room: String) {
+
+
         CoroutineScope(Dispatchers.Main).launch {
-            for (i in 0 until spinnerAdapter!!.count) {
+            if(firstTime){
+                spinnerAdapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_item,  manager.allAvailableRooms)
+                binding.currentRoomSpinner.adapter = spinnerAdapter
+                binding.currentRoomSpinner.onItemSelectedListener = this@MainActivity
+                firstTime = false
+            }
+            for (i in 0 until (spinnerAdapter?.count ?: 0)) {
                 val item: String = binding.currentRoomSpinner.getItemAtPosition(i) as String
                 if (item.decapitalize(Locale.ROOT) == room) {
                     lastSelected = room
@@ -141,7 +152,7 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-           if (manager.conectedDone){
+           if (manager.connectedDone){
                 val item = parent!!.getItemAtPosition(position) as String
                 val itemDecap = item.decapitalize(Locale.ROOT)
                 Log.e("Last selected", "LAST SELECTED: $lastSelected; ITEM: $itemDecap" )
