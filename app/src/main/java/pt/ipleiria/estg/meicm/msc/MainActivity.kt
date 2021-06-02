@@ -101,10 +101,12 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
     }
 
     override fun notifyAdapter() {
-        if (spinnerAdapter != null) {
-            spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, manager.allAvailableRooms)
-        }
+
         CoroutineScope(Dispatchers.Main).launch {
+            spinnerAdapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_item, manager.allAvailableRooms)
+            binding.currentRoomSpinner.adapter = spinnerAdapter
+            binding.currentRoomSpinner.onItemSelectedListener = this@MainActivity
+
             binding.roomList.adapter?.notifyDataSetChanged()
             if (spinnerAdapter != null) {
                 binding.currentRoomSpinner.adapter = spinnerAdapter
