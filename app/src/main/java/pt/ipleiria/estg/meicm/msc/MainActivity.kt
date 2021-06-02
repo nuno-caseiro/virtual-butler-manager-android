@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
     private lateinit var binding: ActivityMainBinding
     private lateinit var manager: Manager
     private var clickedItem: MutableLiveData<Pair<Int, Room>> = MutableLiveData()
-    private var room: Pair<Int,Room> = Pair(0, Room("Empty", "0.0.0.0"))
+    private var room: Pair<Int, Room> = Pair(0, Room("Empty", "0.0.0.0"))
     private var spinnerAdapter: ArrayAdapter<String>? = null
     private var lastSelected: String = ""
     private var firstTime = true
@@ -50,17 +50,16 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
             }
         }
 
-        val itemAdapter  = RoomItemAdapter(manager.mappedRooms, clickedItem)
+        val itemAdapter = RoomItemAdapter(manager.mappedRooms, clickedItem)
         binding.roomList.adapter = itemAdapter
         binding.roomList.layoutManager = LinearLayoutManager(this)
 
 
-        //manager.allAvailableRooms.add("None")
         clickedItem.observe(this, {
             room = it
             try {
                 for (i in 0 until itemAdapter.itemCount) {
-                    if (i != it.first ){
+                    if (i != it.first) {
                         val typedValue = TypedValue()
                         if (this.theme.resolveAttribute(android.R.attr.windowBackground, typedValue, true)) {
                             val colorWindowBackground = typedValue.data
@@ -68,7 +67,7 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
                         }
                     }
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 Log.e("BACKGROUND", "ERROR")
             }
 
@@ -76,10 +75,10 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
 
     }
 
-     override fun showSnack(message: String){
+    override fun showSnack(message: String) {
         val snack = Snackbar.make(this.findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
         snack.setAction("Dismiss") { snack.dismiss() }
-         snack.show()
+        snack.show()
     }
 
     override fun setMessage(item: String, message: String) {
@@ -102,17 +101,16 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
     }
 
     override fun notifyAdapter() {
-        if (spinnerAdapter != null){
+        if (spinnerAdapter != null) {
             spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, manager.allAvailableRooms)
         }
         CoroutineScope(Dispatchers.Main).launch {
             binding.roomList.adapter?.notifyDataSetChanged()
-            if (spinnerAdapter!= null){
+            if (spinnerAdapter != null) {
                 binding.currentRoomSpinner.adapter = spinnerAdapter
             }
         }
     }
-
 
 
     override fun notifySpinnerAdapterChanged() {
@@ -133,8 +131,8 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
 
 
         CoroutineScope(Dispatchers.Main).launch {
-            if(firstTime){
-                spinnerAdapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_item,  manager.allAvailableRooms)
+            if (firstTime) {
+                spinnerAdapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_item, manager.allAvailableRooms)
                 binding.currentRoomSpinner.adapter = spinnerAdapter
                 binding.currentRoomSpinner.onItemSelectedListener = this@MainActivity
                 firstTime = false
@@ -152,14 +150,14 @@ class MainActivity : AppCompatActivity(), UtilCallback, AdapterView.OnItemSelect
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-           if (manager.connectedDone){
-                val item = parent!!.getItemAtPosition(position) as String
-                val itemDecap = item.decapitalize(Locale.ROOT)
-                Log.e("Last selected", "LAST SELECTED: $lastSelected; ITEM: $itemDecap" )
-                   CoroutineScope(Dispatchers.Default).launch {
-                       manager.changeCurrentLocation(itemDecap)
-                   }
-           }
+        if (manager.connectedDone) {
+            val item = parent!!.getItemAtPosition(position) as String
+            val itemDecap = item.decapitalize(Locale.ROOT)
+            Log.e("Last selected", "LAST SELECTED: $lastSelected; ITEM: $itemDecap")
+            CoroutineScope(Dispatchers.Default).launch {
+                manager.changeCurrentLocation(itemDecap)
+            }
+        }
     }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {

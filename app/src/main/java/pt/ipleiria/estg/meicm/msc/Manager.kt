@@ -23,8 +23,8 @@ import kotlin.random.Random
 
 class Manager(private val callback: UtilCallback, private var deviceIp: String) {
 
-    // TODO: Insert your server IP and port eg: 192.168.1.78:7579
-    private val serverIP = "192.168.1.78:7579"
+    // TODO: Insert your server IP:port. Eg.: 192.168.1.78:7579
+    private val serverIP = "CHANGE ME"
     private val serverURI = "http://" + this.serverIP
 
     private val onem2m = "/onem2m"
@@ -589,21 +589,21 @@ class Manager(private val callback: UtilCallback, private var deviceIp: String) 
 
         val response = client.newCall(request).execute()
 
-            deleteContainer++
-            when (deleteContainer) {
-                1 -> {
-                    deleteRoom(sentencesToSpeakContainerURI, room)
-                }
-                2 -> {
-                    deleteRoom(managerContainerURI, room)
-                }
-                else -> {
-                    mappedRooms.remove(room)
-                    actualAvailableRooms.add(room.roomName.capitalize(Locale.ROOT))
-                    allAvailableRooms.remove(room.roomName.capitalize(Locale.ROOT))
-                    callback.roomRemoved()
-                }
+        deleteContainer++
+        when (deleteContainer) {
+            1 -> {
+                deleteRoom(sentencesToSpeakContainerURI, room)
             }
+            2 -> {
+                deleteRoom(managerContainerURI, room)
+            }
+            else -> {
+                mappedRooms.remove(room)
+                actualAvailableRooms.add(room.roomName.capitalize(Locale.ROOT))
+                allAvailableRooms.remove(room.roomName.capitalize(Locale.ROOT))
+                callback.roomRemoved()
+            }
+        }
 
     }
 
