@@ -24,7 +24,7 @@ import kotlin.random.Random
 class Manager(private val callback: UtilCallback, private var deviceIp: String) {
 
     // TODO: Insert your server IP:port. Eg.: 192.168.1.78:7579
-    private val serverIP = "192.168.1.78:7579"
+    private val serverIP = "CHANGE ME"
     private val serverURI = "http://" + this.serverIP
 
     private val onem2m = "/onem2m"
